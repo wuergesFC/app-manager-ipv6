@@ -139,7 +139,7 @@ pub fn convert_dir(citadel_root: &str) -> Result<()> {
             {
                 return;
             }
-            if key.priority > priority {
+            if key.priority < priority {
                 // Move the existing app to a new port
                 let new_port = get_new_port(&key.app, &key.container, suggested_port);
                 let new_port_map = port_map_cache.remove(&suggested_port).unwrap();
