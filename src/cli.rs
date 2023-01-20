@@ -118,7 +118,7 @@ pub fn convert_dir(citadel_root: &str) -> Result<()> {
                              suggested_port: u16,
                              priority: PortPriority,
                              dynamic: bool,
-                             implements: Option<String>| {
+                             implements: Option<String>| -> bool {
         let get_new_port = |app: &str, container: &str, mut suggested_port: u16| -> u16 {
             while RESERVED_PORTS.contains(&suggested_port)
                 || port_map_cache.contains_key(&suggested_port)
@@ -137,7 +137,7 @@ pub fn convert_dir(citadel_root: &str) -> Result<()> {
             if (key.app == app && key.container == container)
                 || (key.implements == implements && container == "service")
             {
-                return;
+                return true;
             }
             if key.priority < priority {
                 // Move the existing app to a new port
@@ -156,6 +156,8 @@ pub fn convert_dir(citadel_root: &str) -> Result<()> {
                         priority,
                     },
                 );
+            } else if key.priority == PortPriority::Required && priority == PortPriority::Required {
+                return false;
             } else {
                 // Move the new app to a new port
                 let new_port = get_new_port(app, container, suggested_port);
@@ -197,6 +199,7 @@ pub fn convert_dir(citadel_root: &str) -> Result<()> {
                 },
             );
         }
+        true
     };
 
     if citadel_seed.is_none() {
@@ -207,6 +210,7 @@ pub fn convert_dir(citadel_root: &str) -> Result<()> {
         .expect("Preprocessing apps failed");
 
     let mut data_dirs = HashMap::new();
+    let mut unsupported_apps = Vec::new();
     for app in apps {
         let app = app.expect("Error reading app directory!");
         let app_id = app.file_name();
@@ -240,7 +244,7 @@ pub fn convert_dir(citadel_root: &str) -> Result<()> {
                 current_suffix += 1;
             }
             if let Some(main_port) = service.port {
-                validate_port(
+                let port_available = validate_port(
                     app_id,
                     service_name,
                     main_port,
@@ -248,8 +252,9 @@ pub fn convert_dir(citadel_root: &str) -> Result<()> {
                     false,
                     app_yml.metadata.implements.clone(),
                 );
+                assert!(port_available, "Failed to get an available port for {} {} {}", app_id, service_name, main_port);
             } else if main_container == service_name {
-                validate_port(
+                let port_available = validate_port(
                     app_id,
                     service_name,
                     3000,
@@ -257,11 +262,13 @@ pub fn convert_dir(citadel_root: &str) -> Result<()> {
                     true,
                     app_yml.metadata.implements.clone(),
                 );
+                // Optional ports should alwas be available
+                assert!(port_available, "Failed to get an available port for {} {} {}", app_id, service_name, 3000);
             }
             if let Some(ports) = &service.required_ports {
                 if let Some(tcp_ports) = &ports.tcp {
                     for host_port in tcp_ports.keys() {
-                        validate_port(
+                        let port_available = validate_port(
                             app_id,
                             service_name,
                             *host_port,
@@ -269,11 +276,20 @@ pub fn convert_dir(citadel_root: &str) -> Result<()> {
                             false,
                             app_yml.metadata.implements.clone(),
                         );
+                        if !port_available {
+                            tracing::warn!(
+                                "App {} (container {}) requires port {} (on TCP), but this port is already in use!",
+                                app_id,
+                                service_name,
+                                host_port,
+                            );
+                            unsupported_apps.push(app_id.to_owned());
+                        }
                     }
                 }
                 if let Some(udp_ports) = &ports.udp {
                     for host_port in udp_ports.keys() {
-                        validate_port(
+                        let port_available = validate_port(
                             app_id,
                             service_name,
                             *host_port,
@@ -281,6 +297,15 @@ pub fn convert_dir(citadel_root: &str) -> Result<()> {
                             false,
                             app_yml.metadata.implements.clone(),
                         );
+                        if !port_available {
+                            tracing::warn!(
+                                "App {} (container {}) requires port {} (on UDP), but this port is already in use!",
+                                app_id,
+                                service_name,
+                                host_port,
+                            );
+                            unsupported_apps.push(app_id.to_owned());
+                        }
                     }
                 }
             }
@@ -401,7 +426,7 @@ pub fn convert_dir(citadel_root: &str) -> Result<()> {
         let app_yml_path = app.path().join("app.yml");
         let docker_compose_yml_path = app.path().join("docker-compose.yml");
         // Skip if app.yml does not exist
-        if !app_yml_path.exists() {
+        if !app_yml_path.exists() || unsupported_apps.contains(&app_id.to_string()) {
             // Delete docker-compose.yml if it exists
             if docker_compose_yml_path.exists() {
                 std::fs::remove_file(docker_compose_yml_path)
