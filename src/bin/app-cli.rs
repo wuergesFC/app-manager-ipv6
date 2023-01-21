@@ -24,6 +24,9 @@ enum SubCommand {
     Convert {
         /// The citadel root dir
         citadel_root: String,
+        /// The URL the Caddy admin api is listing on
+        #[clap(short, long)]
+        caddy_url: Option<String>,
     },
     /// Get a JSON schema for the app.yml format
     #[cfg(feature = "dev-tools")]
@@ -105,8 +108,8 @@ fn main() {
     tracing_subscriber::fmt::init();
     let args: Cli = Cli::parse();
     match args.command {
-        SubCommand::Convert { citadel_root } => {
-            cli::convert_dir(&citadel_root).expect("Failed to convert");
+        SubCommand::Convert { citadel_root, caddy_url } => {
+            cli::convert_dir(&citadel_root, &caddy_url).expect("Failed to convert");
         }
         #[cfg(feature = "dev-tools")]
         SubCommand::Schema { version } => match version.as_str() {
