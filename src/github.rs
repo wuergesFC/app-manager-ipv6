@@ -26,7 +26,9 @@ pub async fn check_updates(
         let tag = tag.name;
         // Remove the v prefix if it exists
         let tag = tag.trim_start_matches('v');
-        let version = Version::parse(tag)?;
+        let Ok(version) = Version::parse(tag) else {
+            continue;
+        };
         if (include_pre || version.pre.is_empty()) && &version > current_version {
             return Ok(tag.to_string());
         }

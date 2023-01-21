@@ -5,6 +5,7 @@ use std::collections::{BTreeMap, HashMap};
 
 use crate::composegenerator::compose::types::{Command, StringOrIntOrBool};
 use crate::composegenerator::types::Permissions;
+use crate::utils::is_false;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
@@ -88,6 +89,7 @@ pub struct Container {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hidden_services: Option<HiddenServices>,
     #[serde(default = "bool::default")]
+    #[serde(skip_serializing_if = "is_false")]
     /// Set this to true to avoid having Caddy in front
     pub direct_tcp: bool,
 }
@@ -126,6 +128,7 @@ pub struct InputMetadata {
     /// The app's default password. Can also be $APP_SEED for a random password
     pub default_password: Option<String>,
     #[serde(default = "bool::default")]
+    #[serde(skip_serializing_if = "is_false")]
     /// True if the app only works over Tor
     pub tor_only: bool,
     /// A list of containers to update automatically (still validated by the Citadel team)

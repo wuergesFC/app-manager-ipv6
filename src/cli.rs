@@ -19,10 +19,12 @@ use crate::composegenerator::{
 
 use anyhow::Result;
 
+#[cfg(feature = "dev-tools")]
+pub mod dev_tools;
 mod preprocessing;
 #[cfg(feature = "git")]
 pub mod repos;
-mod tera;
+pub(crate) mod tera;
 #[cfg(feature = "umbrel")]
 #[allow(clippy::collapsible_match, clippy::unnecessary_unwrap)]
 pub mod umbrel;
@@ -118,7 +120,8 @@ pub fn convert_dir(citadel_root: &str) -> Result<()> {
                              suggested_port: u16,
                              priority: PortPriority,
                              dynamic: bool,
-                             implements: Option<String>| -> bool {
+                             implements: Option<String>|
+     -> bool {
         let get_new_port = |app: &str, container: &str, mut suggested_port: u16| -> u16 {
             while RESERVED_PORTS.contains(&suggested_port)
                 || port_map_cache.contains_key(&suggested_port)
@@ -252,7 +255,11 @@ pub fn convert_dir(citadel_root: &str) -> Result<()> {
                     false,
                     app_yml.metadata.implements.clone(),
                 );
-                assert!(port_available, "Failed to get an available port for {} {} {}", app_id, service_name, main_port);
+                assert!(
+                    port_available,
+                    "Failed to get an available port for {} {} {}",
+                    app_id, service_name, main_port
+                );
             } else if main_container == service_name {
                 let port_available = validate_port(
                     app_id,
@@ -263,7 +270,11 @@ pub fn convert_dir(citadel_root: &str) -> Result<()> {
                     app_yml.metadata.implements.clone(),
                 );
                 // Optional ports should alwas be available
-                assert!(port_available, "Failed to get an available port for {} {} {}", app_id, service_name, 3000);
+                assert!(
+                    port_available,
+                    "Failed to get an available port for {} {} {}",
+                    app_id, service_name, 3000
+                );
             }
             if let Some(ports) = &service.required_ports {
                 if let Some(tcp_ports) = &ports.tcp {

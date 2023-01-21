@@ -32,11 +32,7 @@ pub const ALWAYS_ALLOWED_ENV_VARS: [&str; 12] = [
     "MANAGER_IP",
 ];
 
-pub fn is_allowed_by_permissions(
-    app_id: &str,
-    env_var: &str,
-    permissions: &[&String],
-) -> bool {
+pub fn is_allowed_by_permissions(app_id: &str, env_var: &str, permissions: &[&String]) -> bool {
     if ALWAYS_ALLOWED_ENV_VARS.contains(&env_var) {
         return true;
     } else if env_var.starts_with("BITCOIN") {

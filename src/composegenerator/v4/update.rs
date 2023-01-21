@@ -34,6 +34,9 @@ pub async fn get_hash(container: &str, docker: &Docker) -> Result<String> {
     Ok(result.to_owned().split('@').last().unwrap().to_owned())
 }
 
+/// Updates a single container
+/// Returns false when the to_version is already the latest version,
+/// true when an update was available
 pub async fn update_container(
     container: &mut Container,
     to_version: &String,

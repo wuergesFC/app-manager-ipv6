@@ -3,6 +3,7 @@ use citadel_apps::cli;
 use citadel_apps::composegenerator::umbrel::types::Metadata as UmbrelMetadata;
 #[cfg(feature = "dev-tools")]
 use citadel_apps::{
+    cli::dev_tools::update_app_file,
     composegenerator::{
         compose::types::ComposeSpecification,
         convert_config, load_config,
@@ -10,7 +11,6 @@ use citadel_apps::{
         v3::{convert::v3_to_v4, types::SchemaItemContainers},
         v4::types::AppYml,
     },
-    updates::update_app,
 };
 use clap::{Parser, Subcommand};
 #[cfg(any(feature = "umbrel", feature = "dev-tools"))]
@@ -59,7 +59,7 @@ enum SubCommand {
         token: Option<String>,
         /// Whether to include pre-releases
         #[clap(short, long)]
-        include_prerelease: bool,
+        include_prerelease: Option<bool>,
     },
     /// Convert an app.yml v3 to an app.yml v4
     /// v3 added implicit mounts of the bitcoin, lnd and CLN data directories, you can remove them from the output if they are not needed
@@ -99,26 +99,6 @@ struct Cli {
     /// The subcommand to run
     #[clap(subcommand)]
     command: SubCommand,
-}
-
-#[cfg(feature = "dev-tools")]
-async fn update_app_yml(path: &Path, include_prerelease: bool) {
-    let app_yml = std::fs::File::open(path).expect("Error opening app definition!");
-    let mut parsed_app_yml = load_config(app_yml).expect("Failed to parse app.yml");
-    let update_result = update_app(&mut parsed_app_yml, include_prerelease).await;
-    if update_result.is_err() {
-        return;
-    }
-    match parsed_app_yml {
-        citadel_apps::composegenerator::AppYmlFile::V4(app_yml) => {
-            let writer = std::fs::File::create(path).expect("Error opening app definition!");
-            serde_yaml::to_writer(writer, &app_yml).expect("Error saving app definition!");
-        }
-        citadel_apps::composegenerator::AppYmlFile::V3(app_yml) => {
-            let writer = std::fs::File::create(path).expect("Error opening app definition!");
-            serde_yaml::to_writer(writer, &app_yml).expect("Error saving app definition!");
-        }
-    }
 }
 
 fn main() {
@@ -183,11 +163,20 @@ fn main() {
                 }
                 let path = std::path::Path::new(&app);
                 if path.is_file() {
-                    update_app_yml(path, include_prerelease).await;
+                    update_app_file(path, &include_prerelease)
+                        .await
+                        .expect("Failed to update app file");
                 } else if path.is_dir() {
                     let app_yml_path = path.join("app.yml");
+                    let app_yml_jinja_path = path.join("app.yml.jinja");
                     if app_yml_path.is_file() {
-                        update_app_yml(&app_yml_path, include_prerelease).await;
+                        update_app_file(&app_yml_path, &include_prerelease)
+                            .await
+                            .expect("Failed to update app file");
+                    } else if app_yml_jinja_path.is_file() {
+                        update_app_file(&app_yml_jinja_path, &include_prerelease)
+                            .await
+                            .expect("Failed to update app file");
                     } else {
                         let subdirs = std::fs::read_dir(path).expect("Failed to read directory");
                         for subdir in subdirs {
@@ -218,8 +207,28 @@ fn main() {
                                     );
                                 } else if file_type.is_dir() {
                                     let sub_app_yml = subdir.path().join("app.yml");
+                                    let sub_app_yml_jinja = subdir.path().join("app.yml.jinja");
                                     if sub_app_yml.is_file() {
-                                        update_app_yml(&sub_app_yml, include_prerelease).await;
+                                        if let Err(err) =
+                                            update_app_file(&sub_app_yml, &include_prerelease).await
+                                        {
+                                            tracing::warn!(
+                                                "Failed to update {}: {}",
+                                                sub_app_yml.display(),
+                                                err
+                                            );
+                                        }
+                                    } else if sub_app_yml_jinja.is_file() {
+                                        if let Err(err) =
+                                            update_app_file(&sub_app_yml_jinja, &include_prerelease)
+                                                .await
+                                        {
+                                            tracing::warn!(
+                                                "Failed to update {}: {}",
+                                                sub_app_yml.display(),
+                                                err
+                                            );
+                                        }
                                     } else {
                                         eprintln!(
                                             "{}/{}/app.yml does not exist or is not a file!",

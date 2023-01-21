@@ -6,11 +6,15 @@ use anyhow::{bail, Result};
 
 pub async fn check_updates(
     metadata: &InputMetadata,
-    include_pre: bool,
+    include_pre: &Option<bool>,
     token: Option<String>,
 ) -> Result<String> {
-    let current_version = metadata.version.clone();
+    let current_version = metadata
+        .version
+        .strip_prefix('v')
+        .unwrap_or(&metadata.version);
     let current_version = semver::Version::parse(&current_version)?;
+    let include_pre = include_pre.unwrap_or_else(|| !current_version.pre.is_empty());
     match metadata
         .version_control
         .clone()

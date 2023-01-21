@@ -160,3 +160,8 @@ mod test_flatten {
         );
     }
 }
+
+#[inline]
+pub(crate) fn is_false(b: impl std::borrow::Borrow<bool>) -> bool {
+    !b.borrow()
+}

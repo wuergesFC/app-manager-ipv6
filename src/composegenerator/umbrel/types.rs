@@ -1,3 +1,4 @@
+use crate::utils::is_false;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -39,11 +40,13 @@ pub struct Metadata {
     /// The app's default password. Can also be $APP_SEED for a random password
     pub default_password: Option<String>,
     #[serde(default = "bool::default")]
+    #[serde(skip_serializing_if = "is_false")]
     /// True if the app only works over Tor
     pub tor_only: bool,
     /// The apps port
     pub port: u16,
     #[serde(default = "bool::default")]
+    #[serde(skip_serializing_if = "is_false")]
     pub deterministic_password: bool,
     /// A description of the app
     pub description: String,

@@ -161,6 +161,54 @@ fn convert_app_yml_internal(
     Ok(())
 }
 
+pub fn convert_app_yml_for_update(jinja_file: &Path, app_id: &str) -> Result<String> {
+    let mut context = tera::Context::new();
+    context.insert("services", &Vec::<String>::new());
+    context.insert("app_name", app_id);
+    let mut tmpl = String::new();
+    std::fs::File::open(jinja_file)?.read_to_string(&mut tmpl)?;
+    let mut tera = Tera::default();
+    for key in ALWAYS_ALLOWED_ENV_VARS {
+        context.insert(key, "This value is not defined at this stage");
+    }
+    tera.register_function(
+        "derive_entropy",
+        move |_args: &HashMap<String, serde_json::Value>| -> Result<tera::Value, tera::Error> {
+            Ok(tera::to_value(NO_SEED_FOUND_FALLBACK_MSG).expect("Failed to serialize value"))
+        },
+    );
+    tera.register_filter(
+        "tor_hash",
+        |val: &tera::Value,
+         _args: &HashMap<String, tera::Value>|
+         -> Result<tera::Value, tera::Error> {
+            let Some(input) = val.as_str() else {
+            return Err(tera::Error::msg("Identifier must be a string"));
+        };
+            let mut salt = [0u8; 8];
+            rand::thread_rng().fill_bytes(&mut salt);
+            Ok(tera::to_value(tor_hash(input, salt)).expect("Failed to serialize value"))
+        },
+    );
+    tera.register_function(
+        "gen_seed",
+        |args: &HashMap<String, tera::Value>| -> Result<tera::Value, tera::Error> {
+            let Some(len) = args.get("len") else {
+                return Err(tera::Error::msg("Length must be defined"));
+            };
+            let Some(len) = len.as_u64() else {
+                return Err(tera::Error::msg("Length must be a number"));
+            };
+            Ok(tera::to_value(random_hex_string(len as usize)).expect("Failed to serialize value"))
+        },
+    );
+    let tmpl_result = tera.render_str(tmpl.as_str(), &context);
+    if let Err(e) = tmpl_result {
+        bail!("Error processing template {}: {}", jinja_file.display(), e);
+    }
+    Ok(tmpl_result.unwrap())
+}
+
 #[allow(clippy::too_many_arguments)]
 fn generate_tera(
     app_id: &str,
