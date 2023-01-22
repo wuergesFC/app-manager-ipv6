@@ -3,7 +3,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
 
-use crate::composegenerator::compose::types::{Command, StringOrIntOrBool};
+use crate::composegenerator::compose::types::{Command, StringOrIntOrBool, StringOrInt};
 use crate::composegenerator::types::Permissions;
 use crate::utils::is_false;
 
@@ -92,6 +92,8 @@ pub struct Container {
     #[serde(skip_serializing_if = "is_false")]
     /// Set this to true to avoid having Caddy in front
     pub direct_tcp: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub shm_size: Option<StringOrInt>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq, Hash)]

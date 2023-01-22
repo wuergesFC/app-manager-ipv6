@@ -23,7 +23,7 @@ enum LocalEnvVar {
     TorDataDir(String),
 }
 
-const ALLOWED_KEYS_FOR_UMBREL_APPS: [&str; 18] = [
+const ALLOWED_KEYS_FOR_UMBREL_APPS: [&str; 19] = [
     "image",
     "user",
     "stop_grace_period",
@@ -41,6 +41,7 @@ const ALLOWED_KEYS_FOR_UMBREL_APPS: [&str; 18] = [
     "volumes",
     "networks",
     "ports",
+    "shm_size",
     // Ignored right now, TODO: Add to app.yml
     "healthcheck",
 ];

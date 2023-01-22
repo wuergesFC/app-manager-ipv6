@@ -327,6 +327,15 @@ pub enum StringOrIntOrBool {
 }
 
 #[derive(Clone, Deserialize, Serialize, PartialEq, Eq, Debug)]
+#[serde(untagged)]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+pub enum StringOrInt {
+    String(String),
+    Int(u64),
+}
+
+
+#[derive(Clone, Deserialize, Serialize, PartialEq, Eq, Debug)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
 #[serde(untagged)]
 pub enum EnvVars {
@@ -471,7 +480,7 @@ pub struct Service {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub security_opt: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub shm_size: Option<serde_json::Value>,
+    pub shm_size: Option<StringOrInt>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stdin_open: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -172,6 +172,7 @@ pub fn v3_to_v4(app: AppYmlV3, installed_services: &Option<&Vec<String>>) -> typ
                 }),
                 cap_add: None,
                 direct_tcp: false,
+                shm_size: None,
             },
         );
     }

@@ -18,11 +18,10 @@ ignoredApps = [
     "tailscale",
 ]
 
-passed = 0
-passedUnique = 0
-failed = 0
-failedUnique = 0
-skipped = len(ignoredApps)
+passed = []
+passedUnique = []
+failed = []
+failedUnique = []
 
 subprocess.run(
     [
@@ -58,26 +57,24 @@ for folder in os.listdir("umbrel-apps"):
         )
     except subprocess.CalledProcessError as e:
         print(f"\033[31m[FAILED]\033[0m {folder}")
-        failed += 1
-        # If citadel-apps/<app-name> doesn't exists, increase failedUnique
-        if not os.path.exists(f"citadel-apps/v4/{folder}"):
-            failedUnique += 1
+        failed.push(folder)
+        if not os.path.exists(f"citadel-apps/v5/{folder}"):
+            failedUnique.append(folder)
         print(e.stderr)
         continue
     if not os.path.exists(f"umbrel-apps/{folder}/app.yml"):
         print(f"\033[31m[FAILED]\033[0m {folder}")
-        failed += 1
-        if not os.path.exists(f"citadel-apps/v4/{folder}"):
-            failedUnique += 1
+        failed.append(folder)
+        if not os.path.exists(f"citadel-apps/v5/{folder}"):
+            failedUnique.append(folder)
         continue
     print(f"\033[32m[PASSED]\033[0m {folder}")
-    passed += 1
-    # If citadel-apps/<app-name> doesn't exists, increase passedUnique
-    if not os.path.exists(f"citadel-apps/v4/{folder}"):
-        passedUnique += 1
+    passed.append(folder)
+    if not os.path.exists(f"citadel-apps/v5/{folder}"):
+        passedUnique.append(folder)
 
 
-total = passed + failed + skipped
-print(f"Passed: {passed}/{total} ({round(passed/total*100, 2)}%) ({passedUnique} not available on Citadel)")
-print(f"Failed: {failed}/{total} ({round(failed/total*100, 2)}%) ({failedUnique} not available on Citadel)")
-print(f"Skipped: {skipped}/{total} ({round(skipped/total*100, 2)}%)")
+total = len(passed) + len(failed) + len(ignoredApps)
+print(f"Passed: {len(passed)}/{total} ({round(len(passed)/total*100, 2)}%) ({len(passedUnique)} not available on Citadel)")
+print(f"Failed: {len(failed)}/{total} ({round(len(failed)/total*100, 2)}%) ({len(failedUnique)} not available on Citadel)")
+print(f"Skipped: {len(ignoredApps)}/{total} ({round(len(ignoredApps)/total*100, 2)}%)")

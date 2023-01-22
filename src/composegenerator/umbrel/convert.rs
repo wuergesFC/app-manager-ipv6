@@ -365,6 +365,7 @@ pub fn convert_compose(
             hidden_services: None,
             cap_add: service_def.cap_add,
             direct_tcp: false,
+            shm_size: service_def.shm_size,
         };
         result_services.insert(service_name, new_service);
     }

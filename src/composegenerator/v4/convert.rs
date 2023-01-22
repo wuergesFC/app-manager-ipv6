@@ -610,6 +610,7 @@ pub fn convert_config(
             depends_on: service.depends_on.clone(),
             extra_hosts: service.extra_hosts.clone(),
             working_dir: service.working_dir.clone(),
+            shm_size: service.shm_size.clone(),
             ports: Vec::new(),
             volumes: Vec::new(),
             ..Default::default()

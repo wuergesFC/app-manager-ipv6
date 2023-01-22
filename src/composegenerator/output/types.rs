@@ -1,4 +1,4 @@
-use super::super::compose::types::{Command, StringOrIntOrBool};
+use super::super::compose::types::{Command, StringOrInt, StringOrIntOrBool};
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -51,6 +51,8 @@ pub struct Service {
     pub volumes: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub working_dir: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub shm_size: Option<StringOrInt>,
 }
 
 #[derive(Clone, Default, Deserialize, Serialize, PartialEq, Eq, Debug)]
