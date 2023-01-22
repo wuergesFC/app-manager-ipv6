@@ -11,7 +11,7 @@ WORKDIR /app
 COPY . /app
 RUN cargo build --bin app-cli --release --features=cli,umbrel,git
 
-FROM gcr.io/distroless/cc
+FROM ubuntu:22.10
 COPY --from=build-env /app/target/release/app-cli /
 
 CMD ["/app-cli"]
