@@ -247,9 +247,9 @@ checksum = "3a4f925191b4367301851c6d99b09890311d74b0d43f274c0b34c86d308a3663"
 
 [[package]]
 name = "caddyfile-parser"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52cbdb2b127f59fdf4d06aa601f6c40a85407aecee586ea3ee8be77136e58209"
+checksum = "86ab9f88c20b43bdcf79ffb4742a8447f66796edebda122912b0f871593244be"
 dependencies = [
  "bindgen",
  "gobuild",
