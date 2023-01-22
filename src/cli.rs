@@ -572,11 +572,13 @@ pub fn convert_dir(citadel_root: &str, caddy_url: &Option<String>) -> Result<()>
             let parsed_caddyfile = caddyfile_parser::parse_caddyfile("Caddyfile", &caddy_file_contents);
             let caddy_url = url::Url::parse(&caddy_url)?;
             let caddy_url = caddy_url.join("/load")?;
-            reqwest::blocking::Client::new()
+            if let Err(err) = reqwest::blocking::Client::new()
                 .post(caddy_url)
                 .header("Content-Type", "application/json")
                 .body(parsed_caddyfile)
-                .send()?;
+                .send() {
+                    tracing::warn!("Failed to update Caddy config: {:#?}", err);
+                }
         }
     }
 
