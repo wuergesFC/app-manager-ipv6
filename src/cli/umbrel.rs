@@ -270,7 +270,7 @@ pub fn convert(dir: &Path) -> Result<()> {
                                                                                                 // App name is metadata.id.to_uppercase()
                                                                                                 let service_name = var.trim_start_matches(format!("APP_{}_", metadata.id.to_uppercase().replace('-', "_")).as_str()).trim_end_matches("_IP").to_lowercase().replace('_', "-");
                                                                                                 // This difference in names is used by some umbrel apps, including Suredbits
-                                                                                                if !services.contains_key(&service_name) && services.contains_key(&service_name.replace('-', "")) {
+                                                                                                if !services.contains_key(&service_name) && services.contains_key(service_name.replace('-', "")) {
                                                                                                     key = key.replace('_', "");
                                                                                                 }
 
@@ -535,7 +535,7 @@ pub fn convert(dir: &Path) -> Result<()> {
                     let uppercase_id = metadata.id.clone().to_uppercase();
                     // This difference in names is not used in practice I think, but I only realized that after implementing this
                     if !services.contains_key(&service_name)
-                        && services.contains_key(&service_name.replace('-', ""))
+                        && services.contains_key(service_name.replace('-', ""))
                     {
                         key = format!(
                             "APP_{}_{}_IP",
@@ -559,7 +559,7 @@ pub fn convert(dir: &Path) -> Result<()> {
                             alt_service_name.to_uppercase().replace('-', "_")
                         );
                     } else if !services.contains_key(&service_name)
-                        && services.contains_key(&alt_service_name.replace('-', ""))
+                        && services.contains_key(alt_service_name.replace('-', ""))
                     {
                         key = format!(
                             "APP_{}_{}_IP",

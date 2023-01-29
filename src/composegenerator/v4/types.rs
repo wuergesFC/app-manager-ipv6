@@ -3,7 +3,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
 
-use crate::composegenerator::compose::types::{Command, StringOrIntOrBool, StringOrInt};
+use crate::composegenerator::compose::types::{Command, StringOrInt, StringOrIntOrBool};
 use crate::composegenerator::types::Permissions;
 use crate::utils::is_false;
 

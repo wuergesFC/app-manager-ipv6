@@ -108,7 +108,10 @@ fn main() {
     tracing_subscriber::fmt::init();
     let args: Cli = Cli::parse();
     match args.command {
-        SubCommand::Convert { citadel_root, caddy_url } => {
+        SubCommand::Convert {
+            citadel_root,
+            caddy_url,
+        } => {
             cli::convert_dir(&citadel_root, &caddy_url).expect("Failed to convert");
         }
         #[cfg(feature = "dev-tools")]

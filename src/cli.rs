@@ -569,16 +569,18 @@ pub fn convert_dir(citadel_root: &str, caddy_url: &Option<String>) -> Result<()>
         let mut caddy_file = std::fs::File::create(caddy_file)?;
         caddy_file.write_all(caddy_file_contents.as_bytes())?;
         if let Some(caddy_url) = caddy_url {
-            let parsed_caddyfile = caddyfile_parser::parse_caddyfile("Caddyfile", &caddy_file_contents);
-            let caddy_url = url::Url::parse(&caddy_url)?;
+            let parsed_caddyfile =
+                caddyfile_parser::parse_caddyfile("Caddyfile", &caddy_file_contents);
+            let caddy_url = url::Url::parse(caddy_url)?;
             let caddy_url = caddy_url.join("/load")?;
             if let Err(err) = reqwest::blocking::Client::new()
                 .post(caddy_url)
                 .header("Content-Type", "application/json")
                 .body(parsed_caddyfile)
-                .send() {
-                    tracing::warn!("Failed to update Caddy config: {:#?}", err);
-                }
+                .send()
+            {
+                tracing::warn!("Failed to update Caddy config: {:#?}", err);
+            }
         }
     }
 

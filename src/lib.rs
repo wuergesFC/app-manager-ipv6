@@ -2,7 +2,7 @@
 pub mod cli;
 pub mod composegenerator;
 #[cfg(feature = "umbrel")]
-#[allow(unused, clippy::type_complexity)]
+#[allow(unused, clippy::type_complexity, clippy::result_unit_err)]
 pub mod conch;
 pub mod constants;
 #[cfg(feature = "dev-tools")]

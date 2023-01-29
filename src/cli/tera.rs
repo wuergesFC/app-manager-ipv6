@@ -423,13 +423,7 @@ pub fn convert_app_config_files(
         // But files called _vars.jinja must be processed first
         let mut other_jinja_files: Vec<_> = other_jinja_files.collect();
         other_jinja_files.sort();
-        other_jinja_files.sort_by_key(|path| {
-            if path.file_name().unwrap() == "_vars.jinja" {
-                0
-            } else {
-                1
-            }
-        });
+        other_jinja_files.sort_by_key(|path| i32::from(path.file_name().unwrap() != "_vars.jinja"));
         for jinja_file in other_jinja_files {
             if jinja_file.file_name().unwrap() == "_vars.jinja" {
                 let mut file = std::fs::File::open(&jinja_file)?;

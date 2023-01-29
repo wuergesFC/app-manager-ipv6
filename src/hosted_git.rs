@@ -13,7 +13,7 @@ pub async fn check_updates(
         .version
         .strip_prefix('v')
         .unwrap_or(&metadata.version);
-    let current_version = semver::Version::parse(&current_version)?;
+    let current_version = semver::Version::parse(current_version)?;
     let include_pre = include_pre.unwrap_or_else(|| !current_version.pre.is_empty());
     match metadata
         .version_control

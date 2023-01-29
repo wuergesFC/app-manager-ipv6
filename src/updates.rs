@@ -65,7 +65,7 @@ pub async fn update_app(
                 .version
                 .strip_prefix('v')
                 .unwrap_or(&app.metadata.version);
-            let current_version = semver::Version::parse(&current_version);
+            let current_version = semver::Version::parse(current_version);
             if current_version.is_err() {
                 bail!("Could not parse current version");
             }

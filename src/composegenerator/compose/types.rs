@@ -334,7 +334,6 @@ pub enum StringOrInt {
     Int(u64),
 }
 
-
 #[derive(Clone, Deserialize, Serialize, PartialEq, Eq, Debug)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
 #[serde(untagged)]
