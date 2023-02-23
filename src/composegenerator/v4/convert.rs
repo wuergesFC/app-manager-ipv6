@@ -103,7 +103,10 @@ fn configure_ports(
 
         if let Some(internal_port) = original_definition.port {
             if service_name != main_container {
-                bail!("port: is not supported for containers other than the main container",);
+                bail!("port: is not supported for containers other than the main container");
+            }
+            if service.network_mode == Some("host".to_string()) {
+                continue;
             }
             let public_port: Option<&PortMapElement>;
             let fake_port = PortMapElement {
