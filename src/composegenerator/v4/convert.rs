@@ -284,6 +284,7 @@ fn validate_service(
 }
 
 fn convert_volumes(
+    app_id: &str,
     containers: &HashMap<String, types::Container>,
     permissions: &[&String],
     output: &mut ComposeSpecification,
@@ -334,6 +335,18 @@ fn convert_volumes(
                                 .push(format!("jwt-public-key:{jwt_pubkey_mount}:ro"));
                         } else {
                             bail!("JWT pubkey mount must be a string");
+                        }
+                    }
+                    "citadel-root" => {
+                        if app_id == "nirvati" {
+                            if let StringOrMap::String(string) = value {
+                                service.volumes.push(format!(
+                                    "${{CITADEL_ROOT}}:{}",
+                                    string
+                                ));
+                            } else {
+                                bail!("Citadel root needs to be a string");
+                            }
                         }
                     }
                     _ => {
@@ -632,7 +645,7 @@ pub fn convert_config(
 
     define_ip_addresses(app_name, &app.services, main_service, &mut spec)?;
 
-    convert_volumes(&app.services, &permissions, &mut spec)?;
+    convert_volumes(app_name, &app.services, &permissions, &mut spec)?;
 
     let mut main_port_host: Option<u16> = None;
     if let Some(converted_map) = app_port_map {
