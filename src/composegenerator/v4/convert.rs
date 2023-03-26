@@ -340,10 +340,9 @@ fn convert_volumes(
                     "citadel-root" => {
                         if app_id == "nirvati" {
                             if let StringOrMap::String(string) = value {
-                                service.volumes.push(format!(
-                                    "${{CITADEL_ROOT}}:{}",
-                                    string
-                                ));
+                                service
+                                    .volumes
+                                    .push(format!("${{CITADEL_ROOT}}:{}", string));
                             } else {
                                 bail!("Citadel root needs to be a string");
                             }
@@ -536,7 +535,7 @@ fn get_i2p_tunnels(
             }
         }
         if original_definition.hidden_services.is_some() {
-            tracing::info!("Multi-port hidden services are not yet supported for I2P on Citadel!");
+            tracing::debug!("Multi-port hidden services are not yet supported for I2P on Citadel!");
         }
     }
 
