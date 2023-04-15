@@ -59,7 +59,7 @@ struct UserJson {
     https: Option<serde_json::Value>,
 }
 
-pub fn convert_dir(citadel_root: &str, caddy_url: &Option<String>) -> Result<()> {
+pub fn convert_dir(citadel_root: &str) -> Result<()> {
     let citadel_root = Path::new(&citadel_root);
     let apps = std::fs::read_dir(citadel_root.join("apps")).expect("Error reading apps directory!");
     let apps = apps.filter(|entry| {
@@ -566,23 +566,9 @@ pub fn convert_dir(citadel_root: &str, caddy_url: &Option<String>) -> Result<()>
         }
         let caddy_file_contents = ::tera::Tera::one_off(&caddy_entry_tmpl, &tera_context, false)
             .expect("Error rendering Caddyfile.jinja!");
-        let caddy_file_contents = caddyfile_parser::format_caddyfile(&caddy_file_contents);
+        let caddy_file_contents = caddyfile::formatter::format(&caddy_file_contents);
         let mut caddy_file = std::fs::File::create(caddy_file)?;
         caddy_file.write_all(caddy_file_contents.as_bytes())?;
-        if let Some(caddy_url) = caddy_url {
-            let parsed_caddyfile =
-                caddyfile_parser::parse_caddyfile("Caddyfile", &caddy_file_contents);
-            let caddy_url = url::Url::parse(caddy_url)?;
-            let caddy_url = caddy_url.join("/load")?;
-            if let Err(err) = reqwest::blocking::Client::new()
-                .post(caddy_url)
-                .header("Content-Type", "application/json")
-                .body(parsed_caddyfile)
-                .send()
-            {
-                tracing::warn!("Failed to update Caddy config: {:#?}", err);
-            }
-        }
     }
 
     Ok(())
