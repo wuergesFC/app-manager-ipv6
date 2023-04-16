@@ -200,7 +200,7 @@ fn define_ip_addresses(
                     ipv4_address: Some(format!("$APP_{}_{}_IP", app_name.to_string().to_uppercase().replace('-', "_"), service_name.to_uppercase().replace('-', "_")))
                 }
             })
-        } else if service_name == main_container {
+        } else if service_name == main_container && original_service.network_mode.is_none() {
             bail!("Network can not be disabled for the main container");
         }
     }
