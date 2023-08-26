@@ -198,6 +198,7 @@ fn define_ip_addresses(
             service.networks = Some(bmap! {
                 "default" => NetworkEntry {
                     ipv4_address: Some(format!("$APP_{}_{}_IP", app_name.to_string().to_uppercase().replace('-', "_"), service_name.to_uppercase().replace('-', "_")))
+                    ipv6_address: Some(format!("$APP_{}_{}_IP6", app_name.to_string().to_uppercase().replace('-', "_"), service_name.to_uppercase().replace('-', "_")))
                 }
             })
         } else if service_name == main_container && original_service.network_mode.is_none() {
